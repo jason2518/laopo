@@ -1,0 +1,78 @@
+// 下载图片
+async function downloadAll() {
+    // 一个对象，存储页面图片数量和下载的数量
+    var monitorObj = {
+        imgTotal: 0,
+        imgLoaded: 0
+    }
+    // 创建a标签，赋予图片对象相关属性，并插入body
+    var createA = function (obj) {
+        var a = document.createElement("a");
+        a.id = obj.id;
+        a.target = "_blank"; //注意：要在新页面打开
+        a.href = obj.url;
+        a.download = obj.downloadName;
+
+        document.body.appendChild(a);
+    }
+
+    // 获取页面的图片
+    var imgs = document.images;
+    // 获取页面所有Link
+    var titles = document.links;
+    // 图片的标题数组
+    var downloadName = [];
+    // ****************
+    // 获取所有图片标题
+    for (var i = 0; i < titles.length; i++) {
+        if (titles[i]._prevClass == "EcItemQtyCtrlCard__title") {
+            downloadName.push(titles[i].innerText);
+        }
+    }
+    // ****************
+    // 创建每个图片对象的对应a标签
+    var index = [];
+    var k = 0;
+    for (var i = 0; i < imgs.length; i++) {
+        if (imgs[i]._prevClass == "EcItemImg__inner__img" || imgs[i]._prevClass == "EcItemImg__inner__img is_vertical") {
+            var obj = {
+                id: "img_" + i,
+                url: imgs[i].src,
+                downloadName: downloadName[k] + ".jpg"
+            }
+            index.push(i);
+            k++;
+        } else {
+            continue;
+        }
+        // 统计图片数量
+        monitorObj.imgTotal++;
+        createA(obj);
+    }
+    // 开始下载图片
+    var count = 0;
+    for (var i = 0; i < imgs.length; i++) {
+        if (document.getElementById("img_" + i)) {
+            // 重点：触发a标签的click事件
+            document.getElementById("img_" + i).click();
+            monitorObj.imgLoaded++; // 统计已下载的图片数量
+            // 每下载10个等待1秒
+            if (++count >= 10) {
+                await pause(1000);
+                count = 0;
+            }
+        }
+    }
+    console.log("已下载：" + monitorObj.imgLoaded + "/" + monitorObj.imgTotal);
+}
+
+// 睡眠1秒
+function pause(msec) {
+    return new Promise(
+        (resolve, reject) => {
+        setTimeout(resolve, msec || 1000);
+    });
+}
+
+// 调用下载方法
+downloadAll();
